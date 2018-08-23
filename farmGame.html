@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    #titleBg {
+        width: 800px;
+        height: 80px;
+    }
+    #title {
+        width: auto;
+        height: 80px;
+        margin-left: 50px;
+    }
+    #statusBg {
+        width: 800px;
+        height: 30px;
+        background-color: lightgray;
+    }
+
+    #gameBg {
+        width: 800px;
+        height: 400px;
+        margin-right: 0px;
+    }
+
+    #menu {
+        width: 800px;
+        height :100px;
+        background-color: darkseagreen;
+    }
+
+    #coin {
+        width : 30px;
+        height: 30px;
+    }
+
+    #sellMenu {
+        width: 800px;
+        height: 120px;
+        background-color: darkseagreen;
+    }
+
+    #buyMenu {
+        width: 800px;
+        height: 100px;
+        background-color: lightblue;
+    }
+
+    #howToPlay {
+        width: 700px;
+        height: auto;
+        margin-left : 800px;
+    }
+
+    .status {
+        float : left;
+    }
+
+    .button {
+        width : auto;
+        height : 50px;
+    }
+
+    .btn {
+        float : left;
+    }
+
+    .gameBgImg {
+        background-image: url("img/bg2.png");
+    }
+
+    .gameBgUpgrade {
+        background-image: url("img/bg.png");
+    }
+
+    .box {
+        width: 100px;
+        height: 100px;
+        border: 1px solid black;
+        float: left;
+    }
+
+    .shopNupgrade {
+        margin-left: 20px;
+        float: left;
+    }
+
+    .buyItem {
+        margin-left: 20px;
+        float: left;
+    }
+
+</style>
+<script>
+    var cowId       = 0; // 암소 개수
+    var milkCowId   = 0; // 젖소 개수
+    var hayId       = 0; // 건초 개수
+    var feedId      = 0; // 사료 개수
+    var money       = 0; // 사용자의 보유 자금
+    var milkCount   = 0; // 우유 개수 (최대 : 2)
+    var beefCount   = 0; // 고개 개수 (최대 : 2)
+    var upgrade     = false; // 업그레이드 여부
+    var id; // intervalId
+
+    // <-- 게임 시작
+    function gameStart() {
+        // <-- 플레이어가 사용할 돈 표시
+
+        var statusObj = document.getElementById("statusBg"); // 상태 바
+
+        // 보유 자금 타이틀 이미지 표시
+        var moneyStatObj = document.createElement("img");
+        moneyStatObj.src = "img/moneyStat.png";
+        moneyStatObj.className = "status";
+        statusObj.appendChild(moneyStatObj);
+
+        // 코인 이미지 표시
+        var coinObj = document.createElement("img");
+        coinObj.src = "img/coin.png";
+        coinObj.className = "status";
+        coinObj.id = "coin";
+        statusObj.appendChild(coinObj);
+
+        // 보유 자금의 양 표시
+        var moneyObj = document.createElement("a");
+        moneyObj.id = "moneyStatus";
+        moneyObj.className = "status";
+        moneyObj.innerHTML = money;
+        statusObj.appendChild(moneyObj);
+
+        // 소 현황 타이틀 이미지 표시
+        var cowStat = document.createElement("img");
+        cowStat.src = "img/cowStat.png";
+        cowStat.className = "status";
+        statusObj.appendChild(cowStat);
+
+        // 소 현황 소 아이콘 이미지 표시
+        var cowIcon = document.createElement("img");
+        cowIcon.src = "img/cowIcon.png";
+        cowIcon.className = "status";
+        statusObj.appendChild(cowIcon);
+
+        // 소 보유 현황 표시
+        var cowCount = document.createElement("a");
+        cowCount.id = "cowCount";
+        cowCount.className = "status";
+        statusObj.appendChild(cowCount);
+
+        // 먹이 현황 타이틀 이미지 표시
+        var feedStat = document.createElement("img");
+        feedStat.src = "img/feedStat.png";
+        feedStat.className = "status";
+        statusObj.appendChild(feedStat);
+
+        // 먹이 현황 표시
+        var feedCount = document.createElement("a");
+        feedCount.id = "feedCount";
+        feedStat.className = "status";
+        statusObj.appendChild(feedCount);
+
+        // <-- 소, 먹이 추가 메뉴 표시
+        var menu = document.getElementById("menu"); // 소, 먹이 메뉴 바
+
+        // 젖소 추가 버튼 추가
+        var cowButton1 = document.createElement("img");
+        cowButton1.src = "img/cowButton1.png";
+        cowButton1.id = "milkCow";
+        cowButton1.className = "btn";
+        // 버튼 클릭시 젖소 추가 이벤트
+        cowButton1.addEventListener("click", getCow);
+        menu.appendChild(cowButton1);
+
+        // 암소 추가 버튼 추가
+        var cowButton2 = document.createElement("img");
+        cowButton2.src = "img/cowButton2.png";
+        cowButton2.id = "cow";
+        cowButton2.className = "btn";
+        // 버튼 클릭시 암소 추가 이벤트
+        cowButton2.addEventListener("click", getCow);
+
+        menu.appendChild(cowButton2);
+
+        // 사료 추가 메뉴
+        var button1 = document.createElement("img");
+        button1.src = "img/button1.png";
+        button1.id = "feed";
+        button1.className = "btn";
+        // 사료 클릭시 사료 추가 이벤트
+        button1.addEventListener("click", getItem);
+        menu.appendChild(button1);
+
+        // 건초 추가 메뉴
+        var button2 = document.createElement("img");
+        button2.src = "img/button2.png";
+        button2.id = "hay";
+        button2.className = "btn";
+        // 건초 클릭시 건초 추가 이벤트
+        button2.addEventListener("click", getItem);
+        menu.appendChild(button2);
+
+        // <-- 우유 팔기 & 고기 팔기 구현
+        var sellMenuObj = document.getElementById("sellMenu"); //  sell 메뉴 바
+
+        // 우유 생산 버튼 추가
+        var milkTitle = document.createElement("img");
+        milkTitle.src = "img/milkTitle.png";
+        milkTitle.className = "status";
+        // 우유 생산 클릭시 우유 생성 이벤트
+        milkTitle.addEventListener("click", makeMilk);
+        sellMenuObj.appendChild(milkTitle);
+
+        // 우유 박스 표시
+        var milkBox = document.createElement("div");
+        milkBox.id = "milkBox";
+        milkBox.className = "box";
+        sellMenuObj.appendChild(milkBox);
+
+        // 고기 생산 버튼 추가
+        var beefTitle = document.createElement("img");
+        beefTitle.src = "img/beefTitle.png";
+        beefTitle.className = "status";
+        beefTitle.addEventListener("click", makeBeef);
+        sellMenuObj.appendChild(beefTitle);
+
+        // 고기 박스 표시
+        var beefBox = document.createElement("div");
+        beefBox.id = "beefBox";
+        beefBox.className = "box";
+        sellMenuObj.appendChild(beefBox);
+
+        // <-- 상점 생성
+        // 상점 추가
+        var shop = document.createElement("img");
+        shop.id = "shop";
+        shop.src = "img/shop.png";
+        shop.className = "shopNupgrade";
+        // 상점 dragover 이벤트
+        shop.addEventListener("dragover",
+        function () {
+            event.preventDefault();
+        });
+
+        // 우유 & 고기 상점에 팔기 위한 drop 이벤트
+        shop.addEventListener("drop",
+            function (event) {
+                // 현재 소유 자금
+                var moneyObj = document.getElementById("moneyStatus");
+                // 상점
+                var shopObj = document.getElementById("shop");
+                // 드롭 한 객체의 id
+                var id = event.dataTransfer.getData("text");
+                // 드롭 한 객체를 불러오기
+                var obj = document.getElementById(id);
+
+                // 드롭 한 객체가
+                switch (id) {
+                    // 우유일시
+                    case "milk" : {
+                        // 업그레이드시 획득 금액 2배
+                        if(upgrade == true)
+                            money += 400000;
+                        else
+                            money += 200000;
+                        milkCount--; // 우유 갯수 감소 (팔았으므로)
+                        break;
+                    }
+                    // 고기일시
+                    case "beef" : {
+                        // 업그레이드시 획득 금액 2배
+                        if(upgrade == true)
+                            money += 1000000;
+                        else
+                            money += 500000;
+                        beefCount--; // 고기 갯수 감소 (팔았으므로)
+                        break;
+                    }
+                }
+                // 소유 자금 업데이트
+                moneyObj.innerHTML = money;
+                // 드래그 앤 드롭한 객체는 필요없으므로 추가한 후 삭제
+                shopObj.appendChild(obj);
+                shopObj.removeChild(obj);
+            }
+        );
+
+        // sell 메뉴에 상점 추가
+        sellMenuObj.appendChild(shop);
+
+        // <-- 업그레이드 버튼 생성
+        var upgradeObj = document.createElement("img");
+        upgradeObj.src = "img/upgrade.png";
+        upgradeObj.id = "upgrade";
+        upgradeObj.className = "shopNupgrade";
+
+        // 업그레이드 버튼 클릭시 이벤트
+        upgradeObj.addEventListener("click" ,
+            function (event) {
+                // 현재 소유 자금
+                var moneyObj = document.getElementById("moneyStatus");
+                // 금액이 부족할 시
+                if(money < 50000000) {
+                    alert("업그레이드 자금이 부족합니다");
+                }
+                // 금액이 충족 되었을 시
+                else {
+                    // 돈 업데이트
+                    money -= 50000000;
+                    moneyObj.innerHTML = money;
+                    // 업그레이드로 목장 배경 변경
+                    var gameBgObj = document.getElementById("gameBg");
+                    gameBgObj.className = "gameBgUpgrade";
+                    // 업그레이드 플래그 변경
+                    upgrade = true;
+
+                    // 업그레이드 버튼 완료로 변경
+                    var upgradeBefore = document.getElementById("upgrade");
+
+                    var upgradeAfter = document.createElement("img");
+                    upgradeAfter.id = "upgrade";
+                    upgradeAfter.src = "img/upgradeComplete.png";
+                    upgradeAfter.className = "shopNupgrade";
+
+                    sellMenuObj.replaceChild(upgradeAfter, upgradeBefore);
+                }
+
+        });
+        // sell 메뉴에 업그레이드 버튼 추가
+        sellMenuObj.appendChild(upgradeObj);
+
+        // <-- 구입 메뉴 생성
+
+        // 구입 메뉴 영역 가져오기
+        var buyMenuObj = document.getElementById("buyMenu");
+
+        // 금괴 버튼 추가
+        var buyMenu1 = document.createElement("img");
+        buyMenu1.src = "img/buy1.png";
+        buyMenu1.id = "buy1";
+        buyMenu1.className = "buyItem";
+        // 클릭시 아이템 구입 이벤트
+        buyMenu1.addEventListener("click", buyItem);
+        buyMenuObj.appendChild(buyMenu1);
+
+        // 차 버튼 추가
+        var buyMenu2 = document.createElement("img");
+        buyMenu2.src = "img/buy2.png";
+        buyMenu2.id = "buy2";
+        buyMenu2.className = "buyItem";
+        // 클릭시 아이템 구입 이벤트
+        buyMenu2.addEventListener("click", buyItem);
+        buyMenuObj.appendChild(buyMenu2);
+
+        // 집 버튼 추가
+        var buyMenu3 = document.createElement("img");
+        buyMenu3.src = "img/buy3.png";
+        buyMenu3.id = "buy3";
+        buyMenu3.className = "buyItem";
+        // 클릭시 아이템 구입 이벤트
+        buyMenu3.addEventListener("click", buyItem);
+        buyMenuObj.appendChild(buyMenu3);
+
+
+        // <-- 기본 암소 & 젖소 한마리씩 추가
+        var gameBgObj = document.getElementById("gameBg"); // 게임 배경
+        // 암소 이미지 객체 설정
+        var cow = document.createElement("img");
+        cow.src = "img/cow.png";
+        cowId++;
+        cow.id = "cow" + cowId;
+        // 암소 클릭시 머니 획득 이벤트
+        cow.addEventListener("click", cowClick);
+
+        // 암소 위치 랜덤 설정
+        var rdX = getRandomValue(70, 200);
+        var strX = rdX + "px";
+
+        var rdY = getRandomValue(170, 250);
+        var strY = rdY + "px";
+
+        cow.style.transform = "translate(" + strX + "," + strY +")";
+
+        // 암소 이미지 객체 추가
+        gameBgObj.appendChild(cow);
+
+        // 젖소 이미지 객체 설정
+        var milkCow = document.createElement("img");
+        milkCow.src = "img/milkCow.png";
+        milkCowId++;
+        milkCow.id = "milkCow" + milkCowId;
+        // 젖소 클릭시 머니 획득 이벤트
+        milkCow.addEventListener("click", cowClick);
+
+        // 젖소 위치 랜덤 설정
+        rdX = getRandomValue(70, 200);
+        strX = rdX + "px";
+
+        rdY = getRandomValue(170, 250);
+        strY = rdY + "px";
+
+        milkCow.style.transform = "translate(" + strX + "," + strY +")";
+        // 젖소 이미지 객체 추가
+        gameBgObj.appendChild(milkCow);
+
+        // 소 보유현황 업데이트
+        cowCount.innerHTML = " 젖소 : " + milkCowId
+            + "마리  / 암소 : " + cowId + "마리";
+
+        // 먹이 현황 표시
+        feedCount.innerHTML = "사료 : " + feedId + " / 건초 : " + hayId;
+
+        // 1초마다 생산량에 따른 소유 자금 업데이트
+        id = setInterval(getMoney, 1000);
+
+    } // <-- gameStart End
+
+    // <-- 소 추가
+    function getCow(event) {
+        var rdX = 0; // 소의 위치 X좌표
+        var rdY = 0; // 소의 위치 Y좌표
+        var gameBgObj = document.getElementById("gameBg"); // 게임 배경
+        var moneyObj = document.getElementById("moneyStatus"); // 소유 자금
+        var cowCountObj = document.getElementById("cowCount"); // 소 보유 현황
+        // 클릭한 소가
+        switch (event.target.id) {
+            // 젖소 일 경우
+            case "milkCow" : {
+                // 소유 자금 부족시
+                if (money < 50000) {
+                    alert("현재 소지금이 부족합니다.");
+                }
+                // 소유 자금 충족시
+                else{
+                    // 소유 자금 업데이트
+                    money -= 50000;
+                    moneyObj.innerHTML = money;
+
+                    // 젖소 이미지 객체 생성
+                    var milkCow = document.createElement("img");
+                    milkCow.src = "img/milkCow.png";
+                    milkCowId++;
+                    milkCow.id = "milkCow" + milkCowId;
+
+                    // 젖소 클릭시 머니 획득 이벤트 추가
+                    milkCow.addEventListener("click", cowClick);
+
+                    // 젖소 위치 랜덤 설정
+                    rdX = getRandomValue(30, 200) + "px";
+                    rdY = getRandomValue(170, 250) + "px";
+                    milkCow.style.transform = "translate(" + rdX + "," + rdY +")";
+
+                    // 젖소 이미지 객체 추가
+                    gameBgObj.appendChild(milkCow);
+                }
+                
+                break;
+            }
+            // 암소 일 경우
+            case "cow" : {
+                // 소유 자금 부족시
+                if (money < 100000) {
+                    alert("현재 소지금이 부족합니다.");
+                }
+                // 소유 자금 충족시
+                else{
+                    // 소유 자금 업데이트
+                    money -= 100000;
+                    moneyObj.innerHTML = money;
+
+                    // 암소 이미지 객체 생성
+                    var cow = document.createElement("img");
+                    cow.src = "img/cow.png";
+                    cowId++;
+                    cow.id = "cow" + cowId;
+
+                    // 암소 클릭시 머니 획득 이벤트 추가
+                    cow.addEventListener("click", cowClick);
+
+                    // 암소 위치 랜덤 설정
+                    rdX = getRandomValue(30, 200) + "px";
+                    rdY = getRandomValue(170, 250) + "px";
+                    cow.style.transform = "translate(" + rdX + "," + rdY +")";
+
+                    // 암소 이미지 객체 추가
+                    gameBgObj.appendChild(cow);
+                }
+                break;
+            }
+        }
+        // 소 보유 현황 업데이트
+        cowCountObj.innerHTML = " 젖소 : " + milkCowId
+            + "마리  / 암소 : " +cowId + "마리";
+
+    } // <-- getCow End
+
+    // <-- 먹이 추가
+    function getItem(event) {
+        var moneyObj = document.getElementById("moneyStatus"); // 소유 자금
+        var feedCount = document.getElementById("feedCount"); // 먹이 현황
+        // 먹이가
+        switch (event.target.id) {
+            // 건초 일 경우
+            case "hay" : {
+                // 소유 자금 부족시
+                if( money < 7000){
+                    alert("현재 소지금이 부족합니다.");
+                }
+                // 소유 자금 충족시
+                else {
+                    // 소유 자금 업데이트
+                    money -= 7000;
+                    moneyObj.innerHTML = money;
+                    hayId++; // 건초 횟수 증가
+                }
+                break;
+            }
+            // 사료 일 경우
+            case "feed" : {
+                // 소유 자금 부족시
+                if( money < 5000) {
+                    alert("현재 소지금이 부족합니다.");
+                }
+                // 소유 자금 충족시
+                else {
+                    // 소유 자금 업데이트
+                    money -= 5000;
+                    moneyObj.innerHTML = money;
+                    feedId++; // 사료 횟수 증가
+                }
+                break;
+            }
+        }
+        // 먹이 현황 업데이트
+        feedCount.innerHTML = "사료 : " + feedId + " / 건초 : " + hayId;
+    } // <-- getItem End
+
+    // <-- 우유 or 고기 생성
+
+    // 우유 생성
+    function makeMilk() {
+        // 젖소가 5마리 이상일시 생성
+        if(milkCowId >= 5) {
+            // 우유는 2개까지만 한번에 생산 가능
+            if (milkCount >= 2) {
+                alert("우유는 한번에 최대 2번까지 생산 가능합니다.");
+            }
+            else {
+                // 우유박스 -> 생성된 우유가 놓여지는 박스
+                var milkBox = document.getElementById("milkBox"); // 우유 박스
+                // 우유 이미지 객체 생성
+                var milkObj = document.createElement("img");
+                milkObj.id = "milk";
+                milkObj.src = "img/milk.png";
+                milkObj.draggable = true;
+                // dragstart 이벤트 추가
+                milkObj.addEventListener("dragstart", function (event) {
+                    event.dataTransfer.setData("text", event.target.id);
+                });
+                // 우유 이미지 객체 추가
+                milkBox.appendChild(milkObj);
+                // 생성된 우유 갯수 증가
+                milkCount++;
+            }
+        }
+        else // 젖소 조건 미달시
+            alert("젖소가 5마리 이상인 경우 생산이 가능합니다.");
+    } // <-- makeMilk End
+
+    // 고기 생성
+    function makeBeef() {
+        // 암소가 5마리 이상일시 생성
+        if(cowId >= 5) {
+            // 고기는 2개까지만 한번에 생산 가능
+            if (beefCount >= 2) {
+                alert("고기는 한번에 최대 2번까지 생산 가능합니다.");
+            }
+            else {
+                // 고기박스 -> 생성된 고기가 놓여지는 박스
+                var beefBox = document.getElementById("beefBox"); // 고기 박스
+                // 고기 이미지 객체 생성
+                var beefObj = document.createElement("img");
+                beefObj.id = "beef";
+                beefObj.src = "img/beef.png";
+                beefObj.draggable = true;
+                // dragstart 이벤트 추가
+                beefObj.addEventListener("dragstart", function (event) {
+                    event.dataTransfer.setData("text", event.target.id);
+                });
+                // 고기 이미지 객체 추가
+                beefBox.appendChild(beefObj);
+                // 생성된 고기 갯수 증가
+                beefCount++;
+            }
+
+        }
+        else // 암소 조건 미달시
+            alert("암소가 5마리 이상인 경우 생산이 가능합니다.");
+
+    } // <-- makeBeef End
+
+    // <-- 소 클릭시 돈 획득
+    function cowClick(event) {
+        var moneyObj = document.getElementById("moneyStatus"); // 소유 자금
+        var cowObj = (event.target.id).substring(0,3); // 소 구분
+
+        // 클릭한 소가
+        switch (cowObj) {
+            // 암소 일경우
+            case "cow" : {
+                // 업그레이드시 획득 금액 2배
+                if(upgrade == true)
+                    money += 10000;
+                else
+                    money += 5000;
+                // 소유 자금 업데이트
+                moneyObj.innerHTML = money;
+                break;
+            }
+            // 젖소 일경우
+            case "mil" : {
+                if(upgrade == true)
+                    money += 6000;
+                else
+                    money += 3000;
+                // 소유 자금 업데이트
+                moneyObj.innerHTML = money;
+                break;
+            }
+        }
+
+    } // <-- cowClick End
+
+    // <-- 소유금 업데이트
+    function getMoney() {
+       var moneyObj = document.getElementById("moneyStatus"); // 소유 자금
+       var plusMoney = 0;
+       // 소의 수에 따른 돈 증가
+        plusMoney += milkCowId * 3000;
+        plusMoney += cowId * 5000;
+
+        // 사료 & 건초 아이템 사용
+        plusMoney += hayId * 1000;
+        plusMoney += feedId * 300;
+
+        // 목장 업그레이드를 했을시 획득머니 2배
+        if(upgrade == true)
+            plusMoney *= 2;
+
+        // 증가한 머니 업데이트
+        money += plusMoney;
+
+        moneyObj.innerHTML = money;
+
+    } // <-- getMoney End
+
+    // <-- 구입 메뉴에 따라 아이템 구입
+    function buyItem(event) {
+       var buyMenuObj = document.getElementById("buyMenu"); // 구입 메뉴
+       var moneyObj = document.getElementById("moneyStatus"); // 소유 자금
+       var buyId = (event.target.id).substring(3,4); // 구입한 품목 구분
+       var buyBefore;  // 구입 아이템 이미지 업데이트 전
+       var buyAfter; // 구입 아이템 이미지 업데이트 후
+
+       // 구입한 품목이
+       switch (buyId) {
+           // 금괴 일 경우
+           case "1" : {
+               // 자금 조건 미달시
+               if (money < 50000000)
+                   alert("소유 자금이 부족합니다");
+               // 자금 조건 충족시
+               else {
+                   // 소유 자금 업데이트
+                   money -= 50000000;
+                   moneyObj.innerHTML = money;
+                   // 구입한 품목 이미지 업데이트
+                   buyBefore = document.getElementById("buy1");
+                   buyAfter = document.createElement("img");
+                   buyAfter.id = "buy1";
+                   buyAfter.src = "img/buy1Complete.png";
+                   buyAfter.className = "buyItem";
+
+                   buyMenuObj.replaceChild(buyAfter, buyBefore);
+               }
+               break;
+           }
+           // 자동차 일 경우
+           case "2" : {
+               // 자금 조건 미달시
+               if (money < 100000000)
+                   alert("소유 자금이 부족합니다");
+               // 자금 조건 충족시
+               else {
+                   // 소유 자금 업데이트
+                   money -= 100000000;
+                   moneyObj.innerHTML = money;
+                   // 구입한 품목 이미지 업데이트
+                   buyBefore = document.getElementById("buy2");
+                   buyAfter = document.createElement("img");
+                   buyAfter.id = "buy2";
+                   buyAfter.src = "img/buy2Complete.png";
+                   buyAfter.className = "buyItem";
+
+                   buyMenuObj.replaceChild(buyAfter, buyBefore);
+               }
+               break;
+           }
+           // 집 일 경우
+           case "3" : {
+               // 자금 조건 미달시
+               if (money < 300000000)
+                   alert("소유 자금이 부족합니다");
+               // 자금 조건 충족시
+               else {
+                   // 소유 자금 업데이트
+                   money -= 300000000;
+                   moneyObj.innerHTML = money;
+                   // 구입한 품목 이미지 업데이트
+                   buyBefore = document.getElementById("buy3");
+                   buyAfter = document.createElement("img");
+                   buyAfter.id = "buy3";
+                   buyAfter.src = "img/buy3Complete.png";
+                   buyAfter.className = "buyItem";
+
+                   buyMenuObj.replaceChild(buyAfter, buyBefore);
+               }
+               break;
+           }
+       }
+    } // <-- buyItem End
+
+    // <-- 랜덤 값 생성
+    function getRandomValue (max, min) {
+        return Math.ceil(Math.random() * (max - min) + min);
+    }
+
+    // 마우스를 올렸을 때
+    function mouseOver() {
+        var titleBgObj = document.getElementById("titleBg"); // 타이틀 메뉴
+        // 게임 방법 이미지 객체 생성
+        var howToPlay = document.createElement("img");
+        howToPlay.src = "img/howToPlayImg.png";
+        howToPlay.id = "howToPlay";
+        // 타이틀 메뉴에 게임 방법 이미지 객체 표시
+        titleBgObj.appendChild(howToPlay);
+    }
+    // 마우스를 땠을 때
+    function mouseLeave() {
+        var titleBgObj = document.getElementById("titleBg"); // 타이틀 메뉴
+        var howToPlay = document.getElementById("howToPlay"); // 게임방법 이미지 객체
+        // 게임방법 이미지 객체 제거
+        titleBgObj.removeChild(howToPlay);
+    }
+
+</script>
+<body>
+<!-- 타이틀 표시 -->
+<div id = "titleBg">
+    <img id = "title" src="img/title.png"/>
+    <img class = "button" src="img/gameStart.png" onclick="gameStart()"/>
+    <img class = "button" src="img/howToPlay.png" onmouseover="mouseOver()" onmouseleave="mouseLeave()" />
+</div>
+<!-- 상태 표시 -->
+<div id = "statusBg"></div>
+<!-- 게임 화면 -->
+<div id = "gameBg" class = "gameBgImg">
+</div>
+<!-- 메뉴 화면 -->
+<div id = "menu"></div>
+<div id = "sellMenu"></div>
+<div id = "buyMenu"></div>
+
+</body>
+</html>
